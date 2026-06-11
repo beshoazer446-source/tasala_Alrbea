@@ -7,21 +7,6 @@ import { useApp } from "@/context/AppContext";
 import ProductCard from "@/components/ProductCard";
 import styles from "./page.module.css";
 
-export const dynamic = "force-static";
-
-export function generateStaticParams() {
-  return [
-    { id: "peanuts" },
-    { id: "nuts" },
-    { id: "roasted" },
-    { id: "crackers" },
-    { id: "candy" },
-    { id: "healthy" },
-    { id: "chocolate" },
-    { id: "choc_kg" },
-    { id: "offers" },
-  ];
-}
 
 export default function CategoryPage() {
   const { id } = useParams();

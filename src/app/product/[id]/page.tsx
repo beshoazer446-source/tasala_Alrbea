@@ -5,13 +5,7 @@ import Link from "next/link";
 import { products, categories, WEIGHT_OPTIONS, calcPrice } from "@/data/products";
 import { useApp } from "@/context/AppContext";
 import styles from "./page.module.css";
-import { products } from "@/data/products";
 
-export const dynamic = "force-static";
-
-export function generateStaticParams() {
-  return products.map(p => ({ id: String(p.id) }));
-}
 
 export default function ProductPage() {
   const { id } = useParams();
