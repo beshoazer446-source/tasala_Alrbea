@@ -995,6 +995,22 @@ export const products: Product[] = [
     image: "/WhatsApp Image 2026-06-10 at 3.42.45 PM (2).jpeg",
     inStock: true,
   },
+  {
+    id: _id++, categoryId: "chocolate",
+    nameAr: "ميجا شوكولاتة",
+    nameEn: "Mega Chocolate",
+    pricePerKg: 55, unitPrice: 55, soldByUnit: true,
+    image: "/WhatsApp Image 2026-06-12 at 3.57.30 PM.jpeg",
+    inStock: true,
+  },
+  {
+    id: _id++, categoryId: "chocolate",
+    nameAr: "كواليتي ستريت كبير",
+    nameEn: "Quality Street Large",
+    pricePerKg: 1000, unitPrice: 1000, soldByUnit: true,
+    image: "/WhatsApp Image 2026-06-12 at 3.57.29 PM.jpeg",
+    inStock: true, badge: "hot",
+  },
 
   /* ══════════════════════════════════════
      شوكولاتة بالكيلو
@@ -1008,6 +1024,15 @@ export const products: Product[] = [
   image: "/WhatsApp Image 2026-06-11 at 5.30.21 PM (1).jpeg",
   inStock: true, badge: "hot",
   flavors: ["Sable","Caramel","White Chocolate","Chocolate","Coconut","Strawberry","Snack","Chocolate Wheat & Milk"],
+},
+{
+  id: _id++, categoryId: "choc_kg",
+  nameAr: "ميجا فيزا",
+  nameEn: "Mega Visa",
+  pricePerKg: 220,
+  customPrices: cp(28, 55, 110, 220),
+  image: "/WhatsApp Image 2026-06-12 at 3.57.29 PM (1).jpeg",
+  inStock: true,
 },
 {
   id: _id++, categoryId: "choc_kg",
@@ -1063,7 +1088,7 @@ export const products: Product[] = [
   nameAr: "كوفرتينا صوابع", nameEn: "Covertina Fingers",
   pricePerKg: 200,
   customPrices: cp(25, 50, 100, 200),
-  image: "https://images.unsplash.com/photo-1543352634-99a5d50ae78e?w=400&q=80",
+  image: "/WhatsApp Image 2026-06-12 at 3.57.30 PM (1).jpeg",
   inStock: true,
 },
 {
