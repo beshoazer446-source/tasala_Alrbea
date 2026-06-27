@@ -1,61 +1,107 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { products, categories, WEIGHT_OPTIONS, calcPrice } from "@/data/products";
+import { categories, WEIGHT_OPTIONS, calcPrice, Product } from "@/data/products";
 import { useApp } from "@/context/AppContext";
 import styles from "./page.module.css";
 
+function adaptProduct(p: Record<string, unknown>): Product {
+  return {
+    id:          Number(p.id),
+    categoryId:  String(p.category_id ?? ""),
+    nameAr:      String(p.name_ar ?? ""),
+    nameEn:      String(p.name_en ?? ""),
+    pricePerKg:  Number(p.price_per_kg ?? 0),
+    customPrices: (p.price_125g || p.price_250g) ? {
+      "125g": Number(p.price_125g ?? 0),
+      "250g": Number(p.price_250g ?? 0),
+      "500g": Number(p.price_500g ?? 0),
+      "750g": Number(p.price_750g ?? 0),
+      "1kg":  Number(p.price_1kg  ?? 0),
+    } : undefined,
+    image:       String(p.image ?? ""),
+    unitPrice:   p.unit_price ? Number(p.unit_price) : undefined,
+    soldByUnit:  Boolean(p.sold_by_unit),
+    inStock:     Boolean(p.in_stock),
+    badge:       (p.badge as Product["badge"]) ?? undefined,
+    discount:    p.discount ? Number(p.discount) : undefined,
+    flavors:     Array.isArray(p.flavors) ? p.flavors : undefined,
+    description: p.description ? String(p.description) : undefined,
+  };
+}
 
 export default function ProductPage() {
   const { id } = useParams();
   const router = useRouter();
   const { t, addToCart, toggleFavorite, isFavorite, setIsCartOpen } = useApp();
-  const product = products.find(p => p.id === Number(id));
 
+  const [product, setProduct]           = useState<Product | null>(null);
+  const [related, setRelated]           = useState<Product[]>([]);
+  const [loading, setLoading]           = useState(true);
   const [selectedWeight, setSelectedWeight] = useState(WEIGHT_OPTIONS[1]);
-  const [qty, setQty]                       = useState(1);
-  const [added, setAdded]                   = useState(false);
+  const [qty, setQty]                   = useState(1);
+  const [added, setAdded]               = useState(false);
   const [selectedFlavor, setSelectedFlavor] = useState<string>("");
-  const [flavorError, setFlavorError]       = useState(false);
-  const [activeImg, setActiveImg]           = useState(0);
+  const [flavorError, setFlavorError]   = useState(false);
 
-  if (!product) {
-    return (
-      <div className={styles.notFound}>
-        <p>المنتج غير موجود</p>
-        <button onClick={() => router.back()}>رجوع</button>
-      </div>
-    );
-  }
+  // جلب المنتج من Supabase
+  useEffect(() => {
+    if (!id) return;
+    setLoading(true);
 
-  const name       = t.lang === "ar" ? product.nameAr : product.nameEn;
-  const category   = categories.find(c => c.id === product.categoryId);
-  const catName    = t.lang === "ar" ? category?.nameAr : category?.nameEn;
+    // جلب المنتج بالـ id
+    fetch(`/api/products/single?id=${id}`, { cache: "no-store" })
+      .then(r => r.json())
+      .then(data => {
+        if (data && !data.error) {
+          const prod = adaptProduct(data);
+          setProduct(prod);
+          // جلب المنتجات المشابهة
+          fetch(`/api/products?category=${prod.categoryId}`, { cache: "no-store" })
+            .then(r => r.json())
+            .then(list => {
+              if (Array.isArray(list)) {
+                setRelated(list.map(adaptProduct).filter(p => p.id !== prod.id).slice(0, 6));
+              }
+            });
+        }
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [id]);
+
+  if (loading) return (
+    <div style={{ padding: "60px 24px", textAlign: "center", color: "#aaa" }}>
+      <div style={{
+        width: 48, height: 48, border: "3px solid #e8e8e8",
+        borderTop: "3px solid #1a9e7c", borderRadius: "50%",
+        animation: "spin 0.8s linear infinite", margin: "0 auto 16px"
+      }}/>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <p>جاري التحميل...</p>
+    </div>
+  );
+
+  if (!product) return (
+    <div className={styles.notFound}>
+      <p>المنتج غير موجود</p>
+      <button onClick={() => router.back()}>رجوع</button>
+    </div>
+  );
+
+  const name     = t.lang === "ar" ? product.nameAr : product.nameEn;
+  const category = categories.find(c => c.id === product.categoryId);
+  const catName  = t.lang === "ar" ? category?.nameAr : category?.nameEn;
   const hasFlavors = !!(product.flavors && product.flavors.length > 0);
   const isByUnit   = !!product.soldByUnit;
-
-  // صور — لو في images[] استخدمها، غيره الصورة الواحدة
-  const allImages = product.images && product.images.length > 0
-    ? product.images
-    : [product.image];
-
-  // لو طعم متاحتله صورة خاصة، وإلا استخدم الصورة الحالية بالـ index
-  const displayImg = product.flavorImages && selectedFlavor && product.flavorImages[selectedFlavor]
-    ? product.flavorImages[selectedFlavor]
-    : allImages[activeImg] ?? product.image;
-
-  // السعر
-  const displayPrice = isByUnit
-    ? (product.unitPrice ?? 0)
-    : calcPrice(product, selectedWeight.grams);
-
+  const displayPrice = isByUnit ? (product.unitPrice ?? 0) : calcPrice(product, selectedWeight.grams);
   const originalPrice = product.discount
     ? Math.round(displayPrice / (1 - product.discount / 100))
     : null;
 
   function handleAddToCart() {
-    if (!product || !product.inStock) return;
+    if (!product?.inStock) return;
     if (hasFlavors && !selectedFlavor) { setFlavorError(true); return; }
     setFlavorError(false);
     const itemName = hasFlavors && selectedFlavor
@@ -67,7 +113,7 @@ export default function ProductPage() {
       nameEn: itemName.en,
       qty,
       selectedWeight: isByUnit ? "unit" : selectedWeight.key,
-      weightGrams:    isByUnit ? 0      : selectedWeight.grams,
+      weightGrams:    isByUnit ? 0 : selectedWeight.grams,
       finalPrice:     displayPrice,
     });
     setAdded(true);
@@ -79,22 +125,6 @@ export default function ProductPage() {
     handleAddToCart();
     setIsCartOpen(true);
   }
-
-  // اختيار طعم → قلّب الصورة
-  function handleFlavorSelect(fl: string) {
-    setSelectedFlavor(fl);
-    setFlavorError(false);
-    if (!product) return;
-    // لو مفيش flavorImages، قلّب بالـ index
-    if (!product.flavorImages) {
-      const idx = product.flavors?.indexOf(fl) ?? 0;
-      setActiveImg(Math.min(idx, allImages.length - 1));
-    }
-  }
-
-  const related = products
-    .filter(p => p.categoryId === product.categoryId && p.id !== product.id)
-    .slice(0, 6);
 
   return (
     <div className={styles.page}>
@@ -111,12 +141,10 @@ export default function ProductPage() {
 
       <div className={styles.container}>
         <div className={styles.productGrid}>
-
-          {/* ── Image gallery ── */}
+          {/* Image */}
           <div className={styles.imageCol}>
-            {/* Main image */}
             <div className={styles.imgWrapper}>
-              <img src={displayImg} alt={name} className={styles.img} key={displayImg} />
+              <img src={product.image} alt={name} className={styles.img} />
               {product.badge && (
                 <span className={`${styles.badge} ${styles[product.badge]}`}>
                   {product.badge === "new" ? (t.lang === "ar" ? "جديد" : "New")
@@ -124,53 +152,22 @@ export default function ProductPage() {
                     : (t.lang === "ar" ? `خصم ${product.discount}%` : `${product.discount}% Off`)}
                 </span>
               )}
-              {isByUnit && (
-                <span className={styles.unitBadge}>
-                  {t.lang === "ar" ? "بالقطعة" : "Per Unit"}
-                </span>
-              )}
-              {!product.inStock && (
-                <div className={styles.outOfStockOverlay}>{t.outOfStock}</div>
-              )}
+              {isByUnit && <span className={styles.unitBadge}>{t.lang === "ar" ? "بالقطعة" : "Per Unit"}</span>}
+              {!product.inStock && <div className={styles.outOfStockOverlay}>{t.outOfStock}</div>}
             </div>
-
-            {/* Thumbnails — لو في أكتر من صورة */}
-            {allImages.length > 1 && (
-              <div className={styles.thumbRow}>
-                {allImages.map((img, i) => (
-                  <button
-                    key={i}
-                    className={`${styles.thumb} ${activeImg === i && !selectedFlavor ? styles.thumbActive : ""}`}
-                    onClick={() => { setActiveImg(i); setSelectedFlavor(""); }}
-                  >
-                    <img src={img} alt={`${name} ${i + 1}`} />
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
-          {/* ── Details ── */}
+          {/* Details */}
           <div className={styles.detailsCol}>
-            <div className={styles.categoryTag} style={{ background: category?.gradient }}>
-              {catName}
-            </div>
-
+            <div className={styles.categoryTag} style={{ background: category?.gradient }}>{catName}</div>
             <h1 className={styles.productName}>{name}</h1>
-
-            {product.description && (
-              <p className={styles.productDesc}>{product.description}</p>
-            )}
+            {product.description && <p className={styles.productDesc}>{product.description}</p>}
 
             {/* Price */}
             <div className={styles.priceBox}>
               <span className={styles.bigPrice}>{displayPrice} {t.egp}</span>
-              {originalPrice && (
-                <span className={styles.oldPrice}>{originalPrice} {t.egp}</span>
-              )}
-              {product.discount && (
-                <span className={styles.discountTag}>خصم {product.discount}%</span>
-              )}
+              {originalPrice && <span className={styles.oldPrice}>{originalPrice} {t.egp}</span>}
+              {product.discount && <span className={styles.discountTag}>خصم {product.discount}%</span>}
             </div>
             <p className={styles.priceNote}>
               {isByUnit
@@ -178,12 +175,10 @@ export default function ProductPage() {
                 : (t.lang === "ar" ? `السعر لـ ${selectedWeight.label}` : `Price for ${selectedWeight.labelEn}`)}
             </p>
 
-            {/* Weight selector — فقط للمنتجات بالكيلو */}
+            {/* Weight */}
             {!isByUnit && (
               <div className={styles.weightSection}>
-                <p className={styles.sectionLabel}>
-                  {t.lang === "ar" ? "اختر الوزن" : "Select Weight"}
-                </p>
+                <p className={styles.sectionLabel}>{t.lang === "ar" ? "اختر الوزن" : "Select Weight"}</p>
                 <div className={styles.weightGrid}>
                   {WEIGHT_OPTIONS.map(w => (
                     <button
@@ -204,18 +199,14 @@ export default function ProductPage() {
               <div className={`${styles.flavorSection} ${flavorError ? styles.flavorError : ""}`}>
                 <p className={styles.sectionLabel}>
                   {t.lang === "ar" ? "اختر الطعم *" : "Select Flavor *"}
-                  {flavorError && (
-                    <span className={styles.flavorRequired}>
-                      {t.lang === "ar" ? " — مطلوب" : " — required"}
-                    </span>
-                  )}
+                  {flavorError && <span className={styles.flavorRequired}> — مطلوب</span>}
                 </p>
                 <div className={styles.flavorGrid}>
                   {product.flavors!.map(fl => (
                     <button
                       key={fl}
                       className={`${styles.flavorBtn} ${selectedFlavor === fl ? styles.flavorActive : ""}`}
-                      onClick={() => handleFlavorSelect(fl)}
+                      onClick={() => { setSelectedFlavor(fl); setFlavorError(false); }}
                     >
                       {fl}
                     </button>
@@ -237,26 +228,15 @@ export default function ProductPage() {
 
             {/* CTA */}
             <div className={styles.ctaRow}>
-              <button
-                className={`${styles.addCartBtn} ${added ? styles.addedAnim : ""}`}
-                onClick={handleAddToCart}
-                disabled={!product.inStock}
-              >
-                {added
-                  ? (t.lang === "ar" ? "✓ تمت الإضافة!" : "✓ Added!")
-                  : t.addToCart}
+              <button className={`${styles.addCartBtn} ${added ? styles.addedAnim : ""}`} onClick={handleAddToCart} disabled={!product.inStock}>
+                {added ? (t.lang === "ar" ? "✓ تمت الإضافة!" : "✓ Added!") : t.addToCart}
               </button>
-              <button
-                className={styles.buyNowBtn}
-                onClick={handleBuyNow}
-                disabled={!product.inStock}
-              >
+              <button className={styles.buyNowBtn} onClick={handleBuyNow} disabled={!product.inStock}>
                 {t.lang === "ar" ? "اشتري الآن" : "Buy Now"}
               </button>
               <button
                 className={`${styles.favCircle} ${isFavorite(product.id) ? styles.favActive : ""}`}
                 onClick={() => toggleFavorite(product.id)}
-                aria-label={t.addToFavorites}
               >
                 <svg viewBox="0 0 24 24" fill={isFavorite(product.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -267,9 +247,7 @@ export default function ProductPage() {
             {/* Stock */}
             <div className={styles.stockRow}>
               <span className={`${styles.stockDot} ${product.inStock ? styles.inStock : styles.outStock}`}/>
-              <span className={styles.stockLabel}>
-                {product.inStock ? t.inStock : t.outOfStock}
-              </span>
+              <span className={styles.stockLabel}>{product.inStock ? t.inStock : t.outOfStock}</span>
             </div>
           </div>
         </div>
@@ -277,9 +255,7 @@ export default function ProductPage() {
         {/* Related */}
         {related.length > 0 && (
           <div className={styles.relatedSection}>
-            <h2 className={styles.relatedTitle}>
-              {t.lang === "ar" ? "منتجات من نفس القسم" : "More from this Category"}
-            </h2>
+            <h2 className={styles.relatedTitle}>{t.lang === "ar" ? "منتجات من نفس القسم" : "More from this Category"}</h2>
             <div className={styles.relatedGrid}>
               {related.map(rp => {
                 const rName  = t.lang === "ar" ? rp.nameAr : rp.nameEn;
