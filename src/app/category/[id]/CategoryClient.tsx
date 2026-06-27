@@ -43,7 +43,7 @@ export default function CategoryClient({ categoryId }: { categoryId: string }) {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/products?category=${categoryId}`)
+    fetch(`/api/products?category=${categoryId}`, { cache: 'no-store' })
       .then(r => r.json())
       .then(data => {
         if (Array.isArray(data)) setProducts(data.map(adaptProduct));
