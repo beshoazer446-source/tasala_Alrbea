@@ -51,14 +51,14 @@ export default function ProductPage() {
     setLoading(true);
 
     // جلب المنتج بالـ id
-    fetch(`/api/products/single?id=${id}`, { cache: "no-store" })
+   fetch(`/api/products/single?id=${id}&t=${Date.now()}`)
       .then(r => r.json())
       .then(data => {
         if (data && !data.error) {
           const prod = adaptProduct(data);
           setProduct(prod);
           // جلب المنتجات المشابهة
-          fetch(`/api/products?category=${prod.categoryId}`, { cache: "no-store" })
+          fetch(`/api/products?category=${prod.categoryId}&t=${Date.now()}`)
             .then(r => r.json())
             .then(list => {
               if (Array.isArray(list)) {
