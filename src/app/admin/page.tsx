@@ -63,7 +63,7 @@ export default function AdminPage() {
   // Load products
   const loadProducts = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/products?category=${selCat}`);
+    const res = await fetch(`/api/products?category=${selCat}&t=${Date.now()}`, { cache: 'no-store' });
     const data = await res.json();
     setProducts(Array.isArray(data) ? data : []);
     setLoading(false);
