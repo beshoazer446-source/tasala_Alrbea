@@ -1,25 +1,72 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useApp } from "@/context/AppContext";
-import { categories, products } from "@/data/products";
+import { categories, Product } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import styles from "./page.module.css";
 
+function adaptProduct(p: Record<string, unknown>): Product {
+  return {
+    id:          Number(p.id),
+    categoryId:  String(p.category_id ?? ""),
+    nameAr:      String(p.name_ar ?? ""),
+    nameEn:      String(p.name_en ?? ""),
+    pricePerKg:  Number(p.price_per_kg ?? 0),
+    customPrices: (p.price_125g || p.price_250g) ? {
+      "125g": Number(p.price_125g ?? 0),
+      "250g": Number(p.price_250g ?? 0),
+      "500g": Number(p.price_500g ?? 0),
+      "750g": Number(p.price_750g ?? 0),
+      "1kg":  Number(p.price_1kg  ?? 0),
+    } : undefined,
+    image:      String(p.image ?? ""),
+    unitPrice:  p.unit_price ? Number(p.unit_price) : undefined,
+    soldByUnit: Boolean(p.sold_by_unit),
+    inStock:    Boolean(p.in_stock),
+    badge:      (p.badge as Product["badge"]) ?? undefined,
+    discount:   p.discount ? Number(p.discount) : undefined,
+    flavors:    Array.isArray(p.flavors) ? p.flavors : undefined,
+    description: p.description ? String(p.description) : undefined,
+  };
+}
+
 export default function HomePage() {
   const { t } = useApp();
-  const featured = products.filter(p => p.badge === "hot" || p.badge === "sale");
-  const offerProducts = products.filter(p => p.categoryId === "offers");
-  const displayCats = categories.filter(c => c.id !== "offers");
+
+  const [allProducts,  setAllProducts]  = useState<Product[]>([]);
+  const [catCounts,    setCatCounts]    = useState<Record<string, number>>({});
+  const [loadingProds, setLoadingProds] = useState(true);
+
+  const displayCats  = categories.filter(c => c.id !== "offers");
+  const featured     = allProducts.filter(p => p.badge === "hot" || p.badge === "sale").slice(0, 10);
+  const offerProducts = allProducts.filter(p => p.categoryId === "offers");
+
+  // جلب كل المنتجات من Supabase مرة واحدة
+  useEffect(() => {
+    fetch("/api/products", { cache: "no-store" })
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const adapted = data.map(adaptProduct);
+          setAllProducts(adapted);
+          // حساب عدد المنتجات لكل قسم
+          const counts: Record<string, number> = {};
+          adapted.forEach(p => {
+            counts[p.categoryId] = (counts[p.categoryId] ?? 0) + 1;
+          });
+          setCatCounts(counts);
+        }
+        setLoadingProds(false);
+      })
+      .catch(() => setLoadingProds(false));
+  }, []);
 
   function scrollCats(dir: "prev" | "next") {
     const el = document.getElementById("catScroll");
     if (!el) return;
-    // عربي: prev = يمين (موجب)، next = شمال (سالب)
-    // إنجليزي: prev = شمال (سالب)، next = يمين (موجب)
     const rtl = t.lang === "ar";
-    const amount = dir === "prev"
-      ? (rtl ?  220 : -220)
-      : (rtl ? -220 :  220);
+    const amount = dir === "prev" ? (rtl ? 220 : -220) : (rtl ? -220 : 220);
     el.scrollBy({ left: amount, behavior: "smooth" });
   }
 
@@ -70,7 +117,7 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* ── Categories horizontal scroll ── */}
+      {/* ── Categories ── */}
       <section className={styles.section}>
         <div className={styles.sectionInner}>
           <div className={styles.sectionHead}>
@@ -79,15 +126,8 @@ export default function HomePage() {
           </div>
 
           <div className={styles.catScrollWrapper}>
-            {/* زر السابق */}
-            <button
-              className={`${styles.catScrollBtn} ${styles.catScrollBtnPrev}`}
-              onClick={() => scrollCats("prev")}
-              aria-label="previous"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <polyline points="15 18 9 12 15 6"/>
-              </svg>
+            <button className={`${styles.catScrollBtn} ${styles.catScrollBtnPrev}`} onClick={() => scrollCats("prev")} aria-label="previous">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
 
             <div className={styles.catGrid} id="catScroll">
@@ -97,7 +137,7 @@ export default function HomePage() {
                   <div className={styles.catCardOverlay} style={{ background: cat.gradient }} />
                   <div className={styles.catCardContent}>
                     <span className={styles.catCardCount}>
-                      {products.filter(p => p.categoryId === cat.id).length}{" "}
+                      {loadingProds ? "..." : (catCounts[cat.id] ?? 0)}{" "}
                       {t.lang === "ar" ? "منتج" : "items"}
                     </span>
                     <span className={styles.catCardName}>
@@ -108,21 +148,14 @@ export default function HomePage() {
               ))}
             </div>
 
-            {/* زر التالي */}
-            <button
-              className={`${styles.catScrollBtn} ${styles.catScrollBtnNext}`}
-              onClick={() => scrollCats("next")}
-              aria-label="next"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
+            <button className={`${styles.catScrollBtn} ${styles.catScrollBtnNext}`} onClick={() => scrollCats("next")} aria-label="next">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
         </div>
       </section>
 
-      {/* ── Featured products ── */}
+      {/* ── Featured ── */}
       {featured.length > 0 && (
         <section className={styles.sectionGray}>
           <div className={styles.sectionInner}>
@@ -131,7 +164,7 @@ export default function HomePage() {
               <div className={styles.titleUnderline} />
             </div>
             <div className={styles.prodGrid}>
-              {featured.slice(0, 10).map(p => <ProductCard key={p.id} product={p} />)}
+              {featured.map(p => <ProductCard key={p.id} product={p} />)}
             </div>
           </div>
         </section>
