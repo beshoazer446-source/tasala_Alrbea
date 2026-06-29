@@ -237,7 +237,18 @@ export default function AdminPage() {
                     )}
                   </div>
                   <div className={styles.cardActions}>
-                    <button className={styles.editBtn} onClick={() => { setEditProd(p); setModal("edit"); }}>
+                    <button className={styles.editBtn} onClick={() => { 
+  setEditProd({
+    ...p,
+    // مسح الأسعار المخصصة عشان تتحسب من الكيلو
+    price_125g: undefined,
+    price_250g: undefined,
+    price_500g: undefined,
+    price_750g: undefined,
+    price_1kg: undefined,
+  }); 
+  setModal("edit"); 
+}}>
                       ✏️ تعديل
                     </button>
                     <button className={styles.deleteBtn} onClick={() => handleDelete(p.id, p.name_ar)}>
