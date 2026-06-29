@@ -47,29 +47,27 @@ export default function ProductPage() {
 
   // جلب المنتج من Supabase
   useEffect(() => {
-    if (!id) return;
-    setLoading(true);
+  if (!id) return;
+  setLoading(true);
 
-    // جلب المنتج بالـ id
-   fetch(`/api/products/single?id=${id}&t=${Date.now()}`)
-      .then(r => r.json())
-      .then(data => {
-        if (data && !data.error) {
-          const prod = adaptProduct(data);
-          setProduct(prod);
-          // جلب المنتجات المشابهة
-          fetch(`/api/products?category=${prod.categoryId}&t=${Date.now()}`)
-            .then(r => r.json())
-            .then(list => {
-              if (Array.isArray(list)) {
-                setRelated(list.map(adaptProduct).filter(p => p.id !== prod.id).slice(0, 6));
-              }
-            });
-        }
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [id]);
+  fetch(`/api/products/single?id=${id}&t=${Date.now()}`)
+    .then(r => r.json())
+    .then(data => {
+      if (data && !data.error) {
+        const prod = adaptProduct(data);
+        setProduct(prod);
+        fetch(`/api/products?category=${prod.categoryId}&t=${Date.now()}`)
+          .then(r => r.json())
+          .then(list => {
+            if (Array.isArray(list)) {
+              setRelated(list.map(adaptProduct).filter(p => p.id !== prod.id).slice(0, 6));
+            }
+          });
+      }
+      setLoading(false);
+    })
+    .catch(() => setLoading(false));
+}, [id]);
 
   if (loading) return (
     <div style={{ padding: "60px 24px", textAlign: "center", color: "#aaa" }}>
