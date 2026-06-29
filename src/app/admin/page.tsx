@@ -95,13 +95,15 @@ export default function AdminPage() {
     };
     if (editProd.sold_by_unit) {
       payload.unit_price = Number(editProd.unit_price) || 0;
-    } else {
-      payload.price_125g = Number(editProd.price_125g) || null;
-      payload.price_250g = Number(editProd.price_250g) || null;
-      payload.price_500g = Number(editProd.price_500g) || null;
-      payload.price_750g = Number(editProd.price_750g) || null;
-      payload.price_1kg  = Number(editProd.price_1kg)  || null;
-    }
+ } else {
+  // لو في أسعار مخصصة حطها، لو لأ احسبها من pricePerKg
+  const kg = Number(editProd.price_per_kg) || 0;
+  payload.price_125g = Number(editProd.price_125g) || Math.round(kg * 125 / 1000);
+  payload.price_250g = Number(editProd.price_250g) || Math.round(kg * 250 / 1000);
+  payload.price_500g = Number(editProd.price_500g) || Math.round(kg * 500 / 1000);
+  payload.price_750g = Number(editProd.price_750g) || Math.round(kg * 750 / 1000);
+  payload.price_1kg  = Number(editProd.price_1kg)  || kg;
+}
 
     const res = await fetch(url, {
       method,
