@@ -52,7 +52,10 @@ export default function ProductPage() {
   if (!id) return;
   setLoading(true);
 
-  fetch(`/api/products/single?id=${id}&t=${Date.now()}`)
+  fetch(`/api/products/single?id=${id}`, { 
+  cache: 'no-store',
+  headers: { 'Cache-Control': 'no-cache' }
+})
     .then(r => r.json())
     .then(data => {
       if (data && !data.error) {
