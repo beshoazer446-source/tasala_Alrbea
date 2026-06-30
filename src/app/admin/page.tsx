@@ -276,6 +276,7 @@ export default function AdminPage() {
                 <div className={styles.formField}>
                   <label>الاسم بالعربي *</label>
                   <input value={editProd.name_ar || ""} onChange={e => setEditProd(p => ({...p, name_ar: e.target.value}))} placeholder="مثال: كاجو ملح" />
+                  
                 </div>
                 <div className={styles.formField}>
                   <label>الاسم بالإنجليزي *</label>
@@ -347,11 +348,44 @@ export default function AdminPage() {
               )}
 
               {/* Image */}
-              <div className={styles.formField}>
-                <label>مسار الصورة *</label>
-                <input value={editProd.image || ""} onChange={e => setEditProd(p => ({...p, image: e.target.value}))} placeholder="/اسم-الصورة.jpg أو رابط https://" />
-                {editProd.image && <img src={editProd.image} alt="preview" className={styles.imgPreview} />}
-              </div>
+              {/* Image */}
+<div className={styles.formField}>
+  <label>صورة المنتج *</label>
+  <div style={{ display:"flex", gap:8, alignItems:"center", marginBottom:6 }}>
+    <label style={{
+      padding:"8px 14px", background:"#f0fdf9", border:"1.5px solid #1a9e7c",
+      borderRadius:8, cursor:"pointer", fontSize:"0.82rem", fontWeight:700,
+      color:"#1a9e7c", whiteSpace:"nowrap"
+    }}>
+      📁 ارفع صورة
+      <input
+        type="file"
+        accept="image/*"
+        style={{ display:"none" }}
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          setEditProd(p => ({...p, image: "⏳ جاري الرفع..."}));
+          const fd = new FormData();
+          fd.append('file', file);
+          const res = await fetch('/api/upload', { method:'POST', body: fd });
+          const data = await res.json();
+          if (data.url) setEditProd(p => ({...p, image: data.url}));
+          else setEditProd(p => ({...p, image: ""}));
+        }}
+      />
+    </label>
+    <span style={{fontSize:"0.75rem", color:"#aaa"}}>أو اكتب الرابط يدوياً</span>
+  </div>
+  <input
+    value={editProd.image || ""}
+    onChange={e => setEditProd(p => ({...p, image: e.target.value}))}
+    placeholder="https://... أو /اسم-الصورة.jpg"
+  />
+  {editProd.image && !editProd.image.includes("⏳") && (
+    <img src={editProd.image} alt="preview" className={styles.imgPreview} />
+  )}
+</div>
 
               {/* Flavors */}
               <div className={styles.formField}>
