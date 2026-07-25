@@ -1,27 +1,21 @@
 .backdrop {
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.55);
-  z-index: 500;
-  display: flex; align-items: center; justify-content: center;
-  padding: 16px;
-  backdrop-filter: blur(3px);
+  z-index: 500; display: flex; align-items: center; justify-content: center;
+  padding: 16px; backdrop-filter: blur(3px);
   animation: fadeIn 0.2s ease;
 }
 @keyframes fadeIn { from{opacity:0} to{opacity:1} }
 
 .modal {
-  background: #fff;
-  border-radius: 20px;
-  width: 100%; max-width: 620px;
-  max-height: 92vh;
-  overflow: hidden;
-  display: flex; flex-direction: column;
+  background: #fff; border-radius: 20px;
+  width: 100%; max-width: 620px; max-height: 92vh;
+  overflow: hidden; display: flex; flex-direction: column;
   box-shadow: 0 24px 60px rgba(0,0,0,0.22);
   animation: slideUp 0.25s ease;
 }
 @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
 
-/* Header */
 .modalHeader {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 22px;
@@ -32,8 +26,7 @@
 .waIcon {
   width: 42px; height: 42px; border-radius: 50%;
   background: rgba(255,255,255,0.15);
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; color: #fff;
 }
 .waIcon svg { width: 22px; height: 22px; }
 .modalTitle { font-size: 1rem; font-weight: 800; color: #fff; margin: 0; font-family:'Cairo','Tajawal',sans-serif; }
@@ -42,26 +35,21 @@
   width: 32px; height: 32px; border-radius: 50%;
   background: rgba(255,255,255,0.15); border: none; cursor: pointer;
   color: #fff; font-size: 0.82rem;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.2s; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; transition: background 0.2s;
 }
 .closeBtn:hover { background: rgba(255,255,255,0.28); }
 
-/* Body */
-.modalBody { overflow-y: auto; padding: 20px 22px; flex: 1; display: flex; flex-direction: column; gap: 18px; }
+.modalBody { overflow-y: auto; padding: 20px 22px; flex: 1; display: flex; flex-direction: column; gap: 16px; }
 
 /* Order summary */
 .orderSummary {
-  background: #f8fffe;
-  border: 1px solid #d1fae5;
-  border-radius: 14px;
-  padding: 14px 16px;
+  background: #f8fffe; border: 1px solid #d1fae5;
+  border-radius: 14px; padding: 14px 16px;
 }
 .summaryTitle { font-size: 0.78rem; font-weight: 700; color: #065f46; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 10px; }
 .summaryItem {
   display: flex; align-items: center; gap: 8px;
-  padding: 6px 0; border-bottom: 1px solid #e6f9f2;
-  font-size: 0.83rem;
+  padding: 6px 0; border-bottom: 1px solid #e6f9f2; font-size: 0.83rem;
 }
 .summaryItem:last-of-type { border-bottom: none; }
 .summaryName { flex: 1; font-weight: 600; color: #1a1a1a; }
@@ -74,6 +62,15 @@
   font-size: 0.88rem; font-weight: 700; color: #555;
 }
 .totalNum { font-size: 1.1rem; font-weight: 900; color: #1a9e7c; }
+.summaryDiscount {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 6px; padding: 6px 10px;
+  background: #fef9c3; border-radius: 8px;
+  font-size: 0.83rem; font-weight: 600; color: #92400e;
+}
+.discountNum { font-weight: 800; color: #d97706; }
+.finalTotal { border-top: 2px solid #c0167a !important; margin-top: 8px; }
+.finalNum { font-size: 1.2rem; font-weight: 900; color: #c0167a !important; }
 
 /* Form */
 .form { display: flex; flex-direction: column; gap: 14px; }
@@ -81,25 +78,58 @@
 .field { display: flex; flex-direction: column; gap: 5px; }
 .label { font-size: 0.8rem; font-weight: 700; color: #444; }
 .input {
-  padding: 10px 13px;
-  border: 1.5px solid #e8e8e8; border-radius: 10px;
+  padding: 10px 13px; border: 1.5px solid #e8e8e8; border-radius: 10px;
   font-size: 0.88rem; outline: none; font-family: inherit;
-  background: #fafafa; color: #333;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  background: #fafafa; color: #333; transition: border-color 0.2s, box-shadow 0.2s;
 }
 .input:focus { border-color: #1a9e7c; background: #fff; box-shadow: 0 0 0 3px rgba(26,158,124,0.1); }
 .inputError { border-color: #ef4444 !important; }
 .errorMsg { font-size: 0.72rem; color: #ef4444; }
 
+/* Promo */
+.promoSection { display: flex; flex-direction: column; gap: 7px; }
+.promoRow { display: flex; gap: 8px; }
+.promoInput {
+  flex: 1; padding: 10px 13px;
+  border: 1.5px solid #e8e8e8; border-radius: 10px;
+  font-size: 0.9rem; font-weight: 700; outline: none;
+  font-family: monospace; letter-spacing: 0.06em;
+  background: #fafafa; color: #333;
+  transition: border-color 0.2s;
+}
+.promoInput:focus { border-color: #c0167a; box-shadow: 0 0 0 3px rgba(192,22,122,0.1); }
+.promoBtn {
+  padding: 10px 18px; background: #c0167a; color: #fff;
+  border: none; border-radius: 10px; cursor: pointer;
+  font-size: 0.88rem; font-weight: 700; font-family: inherit;
+  transition: opacity 0.2s; white-space: nowrap;
+}
+.promoBtn:hover:not(:disabled) { opacity: 0.88; }
+.promoBtn:disabled { background: #ddd; cursor: not-allowed; }
+.promoApplied {
+  display: flex; align-items: center; justify-content: space-between;
+  background: #f0fdf4; border: 1.5px solid #16a34a;
+  border-radius: 10px; padding: 10px 14px;
+  font-size: 0.85rem; font-weight: 600; color: #15803d;
+}
+.promoRemove {
+  background: none; border: none; cursor: pointer;
+  color: #ef4444; font-size: 0.78rem; font-weight: 700;
+  padding: 2px 6px; border-radius: 6px;
+  transition: background 0.2s;
+}
+.promoRemove:hover { background: #fee2e2; }
+.promoMsg { font-size: 0.8rem; font-weight: 600; margin: 0; }
+.promoOk { color: #16a34a; }
+.promoErr { color: #ef4444; }
+
 /* Payment */
 .payGrid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
 .payCard {
-  position: relative;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px;
   padding: 12px 8px; border-radius: 12px;
   border: 1.5px solid #e8e8e8; background: #fafafa;
-  cursor: pointer; transition: all 0.2s; font-family: inherit;
-  text-align: center;
+  cursor: pointer; transition: all 0.2s; font-family: inherit; text-align: center;
 }
 .payCard:hover { border-color: #1a9e7c; background: #f0fdf9; }
 .payActive { border-color: #1a9e7c !important; background: #f0fdf9 !important; box-shadow: 0 0 0 3px rgba(26,158,124,0.1); }
@@ -107,22 +137,17 @@
 .payLabel { font-size: 0.78rem; font-weight: 700; color: #333; line-height: 1.2; }
 .paySub { font-size: 0.66rem; color: #999; direction: ltr; }
 .payActive .payLabel { color: #0d7a5f; }
-.payCheck {
-  position: absolute; top: 6px; inset-inline-end: 8px;
-  font-size: 0.7rem; font-weight: 700; color: #1a9e7c;
-}
+.payCheck { position: absolute; top: 6px; inset-inline-end: 8px; font-size: 0.7rem; font-weight: 700; color: #1a9e7c; }
 
 /* Footer */
 .modalFooter {
   display: flex; gap: 10px; align-items: center;
-  padding: 14px 22px;
-  border-top: 1px solid #f0f0f0;
-  flex-shrink: 0;
+  padding: 14px 22px; border-top: 1px solid #f0f0f0; flex-shrink: 0;
 }
 .cancelBtn {
   padding: 11px 20px; border: 1.5px solid #e8e8e8; border-radius: 10px;
-  background: none; cursor: pointer; font-size: 0.88rem; font-weight: 600;
-  color: #666; font-family: inherit; transition: all 0.2s;
+  background: none; cursor: pointer; font-size: 0.88rem;
+  font-weight: 600; color: #666; font-family: inherit; transition: all 0.2s;
 }
 .cancelBtn:hover { border-color: #ccc; background: #f5f5f5; }
 .submitBtn {
@@ -130,8 +155,7 @@
   padding: 12px 20px;
   background: linear-gradient(135deg,#25d366,#128c7e);
   color: #fff; border: none; border-radius: 10px; cursor: pointer;
-  font-size: 0.92rem; font-weight: 700; font-family: inherit;
-  transition: opacity 0.2s, transform 0.15s;
+  font-size: 0.92rem; font-weight: 700; font-family: inherit; transition: opacity 0.2s, transform 0.15s;
 }
 .submitBtn:hover { opacity: 0.92; transform: translateY(-1px); }
 
