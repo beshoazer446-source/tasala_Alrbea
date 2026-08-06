@@ -4,7 +4,7 @@ import { useApp } from "@/context/AppContext";
 import styles from "./CheckoutModal.module.css";
 
 const WHATSAPP_NUMBER = "201092559527";
-const VODAFONE_CASH   = "01271555092";
+const VODAFONE_CASH   = "01092559527";
 const INSTAPAY        = "01271555092";
 
 type PayMethod = "whatsapp_cod" | "instapay" | "vodafone";
