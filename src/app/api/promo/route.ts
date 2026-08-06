@@ -55,9 +55,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'max_uses' }, { status: 400 });
     }
 
-    return NextResponse.json({
+return NextResponse.json({
       success: true,
-      discount: promo.discount_amount,
+      discount: promo.discount_type === 'percent'
+        ? Math.round(total * promo.discount_amount / 100)
+        : promo.discount_amount,
       type: promo.discount_type,
       code: promo.code,
     });
